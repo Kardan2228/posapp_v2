@@ -3,8 +3,20 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 20,
-        backgroundColor: '#F5F5F5',
+        padding: 10,
+        backgroundColor: "#f4f4f4",
+    },
+    
+    productRow: {
+        justifyContent: "space-between", // Distribuye los productos de manera uniforme
+    },
+    productContainer: {
+        flex: 1,
+        overflow: "hidden",
+    },
+    productList: {
+        flexGrow: 1,
+        paddingBottom: 10, // Espacio para evitar que los productos se oculten tras el carrito
     },
     title: {
         fontSize: 24,
@@ -35,17 +47,19 @@ export const styles = StyleSheet.create({
         color: '#007AFF',
     },
     cartContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: "white",
         padding: 10,
-        borderRadius: 10,
-        marginTop: 15, // 📌 Separación visual
-        elevation: 3, // 📌 Sombra para destacarlo
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        elevation: 5,
+        height: 300, // Ajustamos para mejor visibilidad
     },
     cartTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 5,
+        fontWeight: "bold",
     },
     cartActions: {
         flexDirection: 'row',
@@ -62,6 +76,9 @@ export const styles = StyleSheet.create({
     cartItemText: {
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    cartList: {
+        maxHeight: 150, // Agregamos límite al FlatList
     },
     cartSummary: {
         position: "absolute",
@@ -107,8 +124,9 @@ export const styles = StyleSheet.create({
         marginTop: 10, // 📌 Espaciado antes del botón
     },
     paymentButtonText: {
-        color: '#fff',
+        color: "white",
         fontSize: 16,
-        fontWeight: 'bold',
+        textAlign: "center",
+        fontWeight: "bold",
     },
 });

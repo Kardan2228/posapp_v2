@@ -6,6 +6,11 @@ import ProductGrid from '../components/pos/ProductGrid';
 import { getProducts } from '../database/database';
 import { Product } from '../types/product';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { updateProduct } from '../database/database';
+import { Alert } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator'; // Importa los tipos
+import { useNavigation } from '@react-navigation/native'; // Importa navegación
 
 interface CartItem extends Product {
     quantity: number;
@@ -123,9 +128,42 @@ const PosScreen: React.FC = () => {
         );
     };
 
-    const handlePayment = () => {
-        setCart([]);
-    };
+    type NavigationProps = StackNavigationProp<RootStackParamList, 'POS'>;
+
+    const navigation = useNavigation<NavigationProps>();
+
+    const handlePayment = async () => {
+        if (cart.length === 0) {
+            Alert.alert('Carrito vacío', 'No hay productos en el carrito.');
+            return;
+        }
+    
+        for (const item of cart) {
+            const updatedProduct = {
+                ...item,
+                stock: item.stock - item.quantity, // Reducir el stock
+            };
+    
+            await updateProduct(updatedProduct); // 🔹 Llamada para actualizar la BD
+        }
+    
+        Alert.alert(
+            'Venta completada',
+            '¿Deseas realizar otra venta?',
+            [
+                {
+                    text: 'Menú Principal',
+                    onPress: () => navigation.navigate('Home'),
+                },
+                {
+                    text: 'Nueva Venta',
+                    onPress: () => setCart([]),
+                    style: 'cancel',
+                },
+            ],
+            { cancelable: false }
+        );
+    };    
 
     const totalParcial = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -133,9 +171,20 @@ const PosScreen: React.FC = () => {
         <View style={styles.container}>
             <Text style={styles.title}>Punto de Venta</Text>
             <SearchBar onSearch={handleSearch} />
-            <ProductGrid products={filteredProducts} onSelectProduct={handleAddToCart} />
 
-            {/* 🛒 Carrito */}
+            {/* 🛍️ Contenedor de productos con desplazamiento y distribución correcta */}
+            <FlatList
+                data={filteredProducts}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={2} // Mantiene dos columnas
+                showsVerticalScrollIndicator={false}
+                columnWrapperStyle={styles.productRow} // Mantiene alineación simétrica
+                renderItem={({ item }) => (
+                    <ProductGrid products={[item]} onSelectProduct={handleAddToCart} />
+                )}
+            />
+
+            {/* 🛒 Carrito fijo */}
             <View style={styles.cartContainer}>
                 <Text style={styles.cartTitle}>Carrito</Text>
                 <FlatList
@@ -159,7 +208,7 @@ const PosScreen: React.FC = () => {
                             </View>
                         </View>
                     )}
-                    style={{ maxHeight: 150 }} // 📌 Limita el crecimiento del carrito
+                    style={styles.cartList}
                 />
                 <Text style={styles.totalText}>Total: ${totalParcial.toFixed(2)}</Text>
                 <TouchableOpacity style={styles.paymentButton} onPress={handlePayment}>
@@ -167,7 +216,6 @@ const PosScreen: React.FC = () => {
                 </TouchableOpacity>
             </View>
         </View>
-
     );
 };
 

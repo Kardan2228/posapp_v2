@@ -5,6 +5,7 @@ import ProductForm from '../inventory/ProductForm';
 import { Product } from '../../types/product';
 import { styles } from '../../styles/inventory.styles';
 import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabase } from '../../database/database';
+import Icon from 'react-native-vector-icons/Ionicons'; // 📌 Íconos
 
 const InventoryScreen: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -14,34 +15,26 @@ const InventoryScreen: React.FC = () => {
     useEffect(() => {
         setupDatabase();
         fetchProducts();
-    }, []);
+    }, []); // ✅ Solo se ejecuta una vez al montar el componente
 
     const fetchProducts = async () => {
         getProducts(setProducts);
     };
 
-    const handleSaveProduct = async (product: Omit<Product, "id">) => {
-        if ("id" in product) {
-            // Si tiene ID, es una actualización
-            await updateProduct(product as Product);
+    const handleSaveProduct = async (product: Omit<Product, 'id'>) => {
+        if (selectedProduct) {
+            // Si el producto ya existe, se actualiza
+            await updateProduct({ ...product, id: selectedProduct.id });
         } else {
-            // Si no tiene ID, se genera uno nuevo
-            const newProduct: Product = {
-                id: Date.now(), // Generar un ID único
-                name: product.name,
-                price: Number(product.price),
-                stock: Number(product.stock),
-                image: product.image || '',
-                expirationDate: product.expirationDate || '',
-                categoryId: product.categoryId || 1, // Valor por defecto
-            };
-
-            await insertProduct(newProduct, () => console.log("✅ Producto insertado correctamente"));
+            // Insertar y obtener el ID automáticamente
+            insertProduct(product, (newId) => {
+                console.log("📌 Nuevo producto insertado con ID:", newId);
+                fetchProducts(); // 🔄 Refresca la lista de productos en pantalla
+            });
         }
 
         setModalVisible(false);
     };
-
 
     const handleDeleteProduct = async (productId: number) => {
         await deleteProduct(productId);
@@ -55,58 +48,69 @@ const InventoryScreen: React.FC = () => {
 
             <FlatList
                 data={products}
-                keyExtractor={(item) => item.id.toString()} // Convertir ID a string
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={{ paddingBottom: 100 }} // 🛠 Espacio para que el botón de agregar producto no se oculte
                 renderItem={({ item }) => (
                     <View style={styles.productCard}>
+                        {/* 📌 Imagen alineada a la izquierda */}
                         {item.image ? (
                             <Image source={{ uri: item.image }} style={styles.productImage} />
                         ) : (
                             <View style={styles.placeholderImage} />
                         )}
+
+                        {/* 📌 Información del producto alineada a la derecha */}
                         <View style={styles.productInfo}>
                             <Text style={styles.productName}>{item.name}</Text>
+                            <Text style={styles.productDetails}>ID: {item.id}</Text>
                             <Text style={styles.productDetails}>Precio: ${item.price}</Text>
                             <Text style={styles.productDetails}>Stock: {item.stock}</Text>
                         </View>
+
+                        {/* 📌 Íconos de acción (Editar y Eliminar) */}
                         <View style={styles.actions}>
                             <TouchableOpacity
-                                style={styles.editButton}
+                                style={styles.iconButton}
                                 onPress={() => {
-                                    setSelectedProduct(item);
-                                    setModalVisible(true);
+                                    setSelectedProduct(item); // ✅ Guarda el producto seleccionado
+                                    setModalVisible(true); // ✅ Abre el modal correctamente
                                 }}
                             >
-                                <Text style={styles.buttonText}>Editar</Text>
+                                <Icon name="create-outline" size={24} color="#007AFF" />
                             </TouchableOpacity>
+
                             <TouchableOpacity
-                                style={styles.deleteButton}
+                                style={styles.iconButton}
                                 onPress={() => handleDeleteProduct(item.id)}
                             >
-                                <Text style={styles.buttonText}>Eliminar</Text>
+                                <Icon name="trash-outline" size={24} color="#FF3B30" />
                             </TouchableOpacity>
                         </View>
                     </View>
                 )}
             />
 
+            {/* ✅ Botón "+ Agregar Producto" (Ahora sí se muestra siempre) */}
             <TouchableOpacity
                 style={styles.addButton}
                 onPress={() => {
-                    setSelectedProduct(null);
+                    setSelectedProduct(null); // ✅ Reiniciar selección de producto
                     setModalVisible(true);
                 }}
             >
                 <Text style={styles.buttonText}>+ Agregar Producto</Text>
             </TouchableOpacity>
 
+            {/* ✅ Modal de formulario para agregar o editar productos */}
             <ProductForm
                 product={selectedProduct}
                 onSave={handleSaveProduct}
-                onClose={() => setModalVisible(false)}  // ✅ Pasa correctamente la función
+                onClose={() => setModalVisible(false)}
                 visible={modalVisible}
             />
         </View>
     );
+
 };
 
 export default InventoryScreen;

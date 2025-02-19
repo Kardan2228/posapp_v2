@@ -35,7 +35,7 @@ export const getProducts = async (callback: (products: Product[]) => void) => {
 };
 
 // 📌 3. Insertar un producto
-export const insertProduct = async (product: Omit<Product, 'id'>, callback: () => void) => {
+export const insertProduct = async (product: Omit<Product, 'id'>, callback: (id: number) => void) => {
   try {
     await db.runAsync(
       `INSERT INTO products (name, price, stock, image, expirationDate, categoryId)
@@ -49,12 +49,18 @@ export const insertProduct = async (product: Omit<Product, 'id'>, callback: () =
         Number(product.categoryId) || 1
       ]
     );
-    console.log('✅ Producto insertado correctamente.');
-    callback();
+
+    // 📌 Obtener el último ID insertado
+    const result = await db.getFirstAsync<{ lastId: number }>('SELECT last_insert_rowid() AS lastId;');
+    const newId = result?.lastId || 0; // Si no encuentra el ID, asigna 0
+
+    console.log(`✅ Producto insertado correctamente con ID: ${newId}`);
+    callback(newId);
   } catch (error) {
     console.error('❌ Error al insertar producto:', error);
   }
 };
+
 
 // 📌 4. Actualizar un producto (AGREGADO)
 export const updateProduct = async (product: Product) => {

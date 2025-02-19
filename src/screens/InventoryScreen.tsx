@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
 import Modal from 'react-native-modal';
-import ProductForm from '../inventory/ProductForm';
-import { Product } from '../../types/product';
-import { styles } from '../../styles/inventory.styles';
-import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabase } from '../../database/database';
+import ProductForm from '../components/inventory/ProductForm';
+import { Product } from '../types/product';
+import { styles } from '../styles/inventory.styles';
+import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabase } from '../database/database';
 import Icon from 'react-native-vector-icons/Ionicons'; // 📌 Íconos
 
 const InventoryScreen: React.FC = () => {

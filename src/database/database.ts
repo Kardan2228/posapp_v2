@@ -1,12 +1,23 @@
 import * as SQLite from 'expo-sqlite';
 import { Product } from '../types/product';
 
-// 📌 Mantener openDatabaseSync como en tu código original
+// 📌 Abrir la base de datos (Se deja una sola vez)
 const db = SQLite.openDatabaseSync('posapp.db');
 
-// 📌 1. Crear la tabla si no existe
+// 📌 Crear las tablas (Usuarios + Productos)
 export const setupDatabase = async () => {
   try {
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN ('admin', 'vendedor')),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     await db.execAsync(`
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,13 +29,50 @@ export const setupDatabase = async () => {
         categoryId INTEGER NOT NULL
       );
     `);
-    console.log('📌 Base de datos configurada correctamente.');
+
+    console.log('📌 Tablas creadas correctamente.');
   } catch (error) {
     console.error('❌ Error al configurar la base de datos:', error);
   }
 };
 
-// 📌 2. Obtener todos los productos
+// 📌 Registrar un nuevo usuario
+export const registerUser = async (name: string, email: string, password: string, role: 'admin' | 'vendedor') => {
+  try {
+    await db.runAsync(
+      `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?);`,
+      [name, email, password, role]
+    );
+    console.log('✅ Usuario registrado correctamente.');
+    return true;
+  } catch (error) {
+    console.error('❌ Error al registrar usuario:', error);
+    return false;
+  }
+};
+
+// 📌 Verificar credenciales de login
+export const loginUser = async (email: string, password: string) => {
+  try {
+    const result = await db.getFirstAsync<{ id: number; name: string; role: string }>(
+      'SELECT id, name, role FROM users WHERE email = ? AND password = ?;',
+      [email, password]
+    );
+
+    if (result) {
+      console.log(`✅ Usuario autenticado: ${result.name}`);
+      return result;
+    } else {
+      console.log('❌ Credenciales incorrectas');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error en la autenticación:', error);
+    return null;
+  }
+};
+
+// 📌 Obtener todos los productos
 export const getProducts = async (callback: (products: Product[]) => void) => {
   try {
     const result = await db.getAllAsync<Product>('SELECT * FROM products;');
@@ -34,7 +82,7 @@ export const getProducts = async (callback: (products: Product[]) => void) => {
   }
 };
 
-// 📌 3. Insertar un producto
+// 📌 Insertar un producto
 export const insertProduct = async (product: Omit<Product, 'id'>, callback: (id: number) => void) => {
   try {
     await db.runAsync(
@@ -50,9 +98,8 @@ export const insertProduct = async (product: Omit<Product, 'id'>, callback: (id:
       ]
     );
 
-    // 📌 Obtener el último ID insertado
     const result = await db.getFirstAsync<{ lastId: number }>('SELECT last_insert_rowid() AS lastId;');
-    const newId = result?.lastId || 0; // Si no encuentra el ID, asigna 0
+    const newId = result?.lastId || 0;
 
     console.log(`✅ Producto insertado correctamente con ID: ${newId}`);
     callback(newId);
@@ -61,8 +108,7 @@ export const insertProduct = async (product: Omit<Product, 'id'>, callback: (id:
   }
 };
 
-
-// 📌 4. Actualizar un producto (AGREGADO)
+// 📌 Actualizar un producto
 export const updateProduct = async (product: Product) => {
   try {
     await db.runAsync(
@@ -85,7 +131,7 @@ export const updateProduct = async (product: Product) => {
   }
 };
 
-// 📌 5. Eliminar un producto (AGREGADO)
+// 📌 Eliminar un producto
 export const deleteProduct = async (id: number) => {
   try {
     await db.runAsync(`DELETE FROM products WHERE id = ?`, [id]);

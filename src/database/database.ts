@@ -1,25 +1,15 @@
 import * as SQLite from 'expo-sqlite';
 import { Product } from '../types/product';
 
-// 📌 Abrir la base de datos (Se deja una sola vez)
+// 📌 Abrir la base de datos
 const db = SQLite.openDatabaseSync('posapp.db');
 
-// 📌 Crear las tablas (Usuarios + Productos)
+// 📌 Crear la tabla products
 export const setupDatabase = async () => {
   try {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL,
-        role TEXT NOT NULL CHECK(role IN ('admin', 'vendedor')),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    console.log('📌 Inicializando base de datos de productos...');
 
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS products (
+    await db.execAsync(`CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         price REAL NOT NULL,
@@ -27,48 +17,11 @@ export const setupDatabase = async () => {
         image TEXT,
         expirationDate TEXT,
         categoryId INTEGER NOT NULL
-      );
-    `);
+    );`);
 
-    console.log('📌 Tablas creadas correctamente.');
+    console.log('✅ Tabla de productos creada correctamente.');
   } catch (error) {
-    console.error('❌ Error al configurar la base de datos:', error);
-  }
-};
-
-// 📌 Registrar un nuevo usuario
-export const registerUser = async (name: string, email: string, password: string, role: 'admin' | 'vendedor') => {
-  try {
-    await db.runAsync(
-      `INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?);`,
-      [name, email, password, role]
-    );
-    console.log('✅ Usuario registrado correctamente.');
-    return true;
-  } catch (error) {
-    console.error('❌ Error al registrar usuario:', error);
-    return false;
-  }
-};
-
-// 📌 Verificar credenciales de login
-export const loginUser = async (email: string, password: string) => {
-  try {
-    const result = await db.getFirstAsync<{ id: number; name: string; role: string }>(
-      'SELECT id, name, role FROM users WHERE email = ? AND password = ?;',
-      [email, password]
-    );
-
-    if (result) {
-      console.log(`✅ Usuario autenticado: ${result.name}`);
-      return result;
-    } else {
-      console.log('❌ Credenciales incorrectas');
-      return null;
-    }
-  } catch (error) {
-    console.error('❌ Error en la autenticación:', error);
-    return null;
+    console.error('❌ Error en setupDatabase:', error);
   }
 };
 
@@ -90,7 +43,7 @@ export const insertProduct = async (product: Omit<Product, 'id'>, callback: (id:
        VALUES (?, ?, ?, ?, ?, ?);`,
       [
         product.name,
-        Number(product.price) || 0, 
+        Number(product.price) || 0,
         Number(product.stock) || 0,
         product.image || '',
         product.expirationDate || '',

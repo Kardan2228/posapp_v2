@@ -33,4 +33,43 @@ export const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+    },
+    cancelButton: {
+        marginTop: 10,
+        padding: 10,
+        backgroundColor: 'red',
+        borderRadius: 5,
+    },
+    cancelButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    adminButton: {
+        backgroundColor: '#007AFF',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    adminButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
 });

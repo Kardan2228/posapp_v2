@@ -5,13 +5,15 @@ import HomeScreen from '../screens/HomeScreen';
 import InventoryScreen from '../screens/InventoryScreen';
 import PosScreen from '../screens/PosScreen';
 import LoginScreen from '../screens/LoginScreen';
+import UserManagementScreen from '../screens/UserManagementScreen';
 
 // 🛠️ Definir tipos para cada pantalla
 export type RootStackParamList = {
-  Home: undefined;
+  Home: { user?: { id: number; name: string; role: string } };
   Inventory: undefined;
   POS: undefined;
   Login: undefined;
+  UserManagement: { user: { id: number; name: string; role: string } };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -24,6 +26,7 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Inventory" component={InventoryScreen} />
         <Stack.Screen name="POS" component={PosScreen} />
+        <Stack.Screen name="UserManagement" component={UserManagementScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

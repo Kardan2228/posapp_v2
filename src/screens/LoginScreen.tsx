@@ -22,7 +22,7 @@ const LoginScreen: React.FC = () => {
         if (user) {
             Alert.alert('Inicio de sesión exitoso', `Bienvenido, ${user.name}`);
             setIsAdmin(user.role === 'admin');
-            navigation.navigate('POS');
+            navigation.navigate('Home', { user });
         } else {
             Alert.alert('Error', 'Credenciales incorrectas');
         }

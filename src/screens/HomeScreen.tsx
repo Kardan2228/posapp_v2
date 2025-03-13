@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { useNavigation, RouteProp } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper'; // 📌 Importamos Appbar para la barra superior
+import UserBadgeMenu from '../components/UserBadgeMenu'; // 📌 Importamos el Badge de usuario
 import Icon from 'react-native-vector-icons/Ionicons';
 import { styles } from '../styles/homeScreen.styles';
-import { SafeAreaView } from 'react-native';
+import { stylesBadge } from '../styles/userBadgeMenu.styles';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 
-// Definir tipos
+// 📌 Definir tipos para la navegación
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 type HomeScreenRouteProp = RouteProp<RootStackParamList, 'Home'>;
 
@@ -29,8 +31,17 @@ const HomeScreen: React.FC<{ route: HomeScreenRouteProp }> = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+      {/* 📌 Agregamos la barra de navegación con el UserBadgeMenu */}
+      <Appbar.Header>
+        <Appbar.Content
+          title="El pumita abarrotero"
+          titleStyle={stylesBadge.appbarTitle} // 🎨 Aplica el estilo desde el archivo de estilos
+        />
+        {user && <UserBadgeMenu userId={user.id} />}
+      </Appbar.Header>
+
       <View style={styles.container}>
-        <Text style={styles.title}>El pumita abarrotero</Text>
+        <Text style={styles.title}>Página principal</Text>
 
         <View style={styles.grid}>
           {menuItems.map((item) => (
@@ -53,7 +64,6 @@ const HomeScreen: React.FC<{ route: HomeScreenRouteProp }> = ({ route }) => {
             </TouchableOpacity>
           ))}
         </View>
-
       </View>
     </SafeAreaView>
   );

@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
         marginBottom: 10,
     },
     subtitle: {
-        fontSize: 16,
+        fontSize: 20,
         textAlign: 'center',
         marginBottom: 20,
         color: '#6c757d',

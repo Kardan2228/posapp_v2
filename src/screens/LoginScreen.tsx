@@ -38,7 +38,7 @@ const LoginScreen: React.FC = () => {
         // ✅ Asegurar que role sea 'admin' o 'vendedor'
         const validRole: 'admin' | 'vendedor' = role === 'admin' ? 'admin' : 'vendedor';
 
-        const success = await registerUser(name, email, password, validRole);
+        const success = await registerUser(name, email, password, validRole, null, 'active');
         if (success) {
             Alert.alert('Usuario Registrado', 'El usuario fue creado exitosamente.');
             setModalVisible(false);

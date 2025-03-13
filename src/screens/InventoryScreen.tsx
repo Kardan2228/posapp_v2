@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image } from 'react-native';
-import Modal from 'react-native-modal';
+//import Modal from 'react-native-modal';
 import ProductForm from '../components/inventory/ProductForm';
 import { Product } from '../types/product';
 import { styles } from '../styles/inventory.styles';
+import { stylesBadge } from '../styles/userBadgeMenu.styles';
 import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabase } from '../database/database';
 import Icon from 'react-native-vector-icons/Ionicons'; // 📌 Íconos
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { useNavigation, RouteProp } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper';
+import UserBadgeMenu from '../components/UserBadgeMenu';
 
-const InventoryScreen: React.FC = () => {
+type InventoryScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Inventory'>;
+type InventoryScreenRouteProp = RouteProp<RootStackParamList, 'Inventory'>;
+
+const InventoryScreen: React.FC<{ route: InventoryScreenRouteProp }> = ({ route }) => {
+    const navigation = useNavigation<InventoryScreenNavigationProp>();
+    const { user } = route.params || {};
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
@@ -43,7 +54,15 @@ const InventoryScreen: React.FC = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Inventario</Text>
+            <Appbar.Header>
+                <Appbar.BackAction onPress={() => navigation.goBack()} />
+                <Appbar.Content
+                    title="Inventario"
+                    titleStyle={stylesBadge.appbarTitle}
+                />
+                {user && <UserBadgeMenu userId={user.id} />}
+            </Appbar.Header>
+
             <Text style={styles.subtitle}>Gestión de productos y stock</Text>
 
             <FlatList

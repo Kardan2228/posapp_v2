@@ -19,8 +19,8 @@ export const styles = StyleSheet.create({
         paddingBottom: 10, // Espacio para evitar que los productos se oculten tras el carrito
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: 20,
+        //fontWeight: 'bold',
         textAlign: 'center',
         marginBottom: 20,
     },
@@ -90,6 +90,15 @@ export const styles = StyleSheet.create({
         borderColor: "#ddd",
         alignItems: "center",
     },
+    manualEntryInput: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginVertical: 10,
+        backgroundColor: 'white'
+    },    
     removeButton: {
         fontSize: 18,
         color: '#FF3B30',

@@ -50,9 +50,20 @@ export const styles = StyleSheet.create({
         marginBottom: 15,
         backgroundColor: "white",
     },
-
     picker: {
         width: "100%", // 🔹 Expande el Picker
         height: 50,
     },
+    imagePreview: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        marginBottom: 10,
+      },
+      imageButtonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '50%',
+        marginBottom: 10,
+      },
 });

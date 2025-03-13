@@ -1,33 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, TextInput } from 'react-native';
 import SearchBar from '../components/pos/SearchBar';
 import { styles } from '../styles/posScreen.styles';
+import { stylesBadge } from '../styles/userBadgeMenu.styles';
 import ProductGrid from '../components/pos/ProductGrid';
-import { getProducts } from '../database/database';
+import { getProducts, updateProduct } from '../database/database';
 import { Product } from '../types/product';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { updateProduct } from '../database/database';
-import { Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/AppNavigator'; // Importa los tipos
-import { useNavigation } from '@react-navigation/native'; // Importa navegación
+import { RootStackParamList } from '../navigation/AppNavigator';
+import { useNavigation, RouteProp } from '@react-navigation/native';
+import { Appbar } from 'react-native-paper';
+import UserBadgeMenu from '../components/UserBadgeMenu';
 
 interface CartItem extends Product {
     quantity: number;
 }
 
-const PosScreen: React.FC = () => {
+type PosScreenNavigationProp = StackNavigationProp<RootStackParamList, 'POS'>;
+type PosScreenRouteProp = RouteProp<RootStackParamList, 'POS'>;
+
+const PosScreen: React.FC<{ route: PosScreenRouteProp }> = ({ route }) => {
+    console.log('User en POS Screen antes de destructuring:', route.params?.user);
+    const navigation = useNavigation<PosScreenNavigationProp>();
+    const { user } = route.params || {}; // ✅ Ahora `user` está bien definido
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
-
+    const [manualEntry, setManualEntry] = useState('');
+    
     useEffect(() => {
         fetchProducts();
     }, []);
 
     const fetchProducts = async () => {
-        getProducts(setProducts);
-        setFilteredProducts(products);
+        getProducts((productList) => {
+            setProducts(productList);
+            setFilteredProducts(productList);
+        });
     };
 
     const handleSearch = (query: string) => {
@@ -52,18 +62,6 @@ const PosScreen: React.FC = () => {
                 return [...prevCart, { ...product, quantity: 1 }];
             }
         });
-
-        setProducts((prevProducts) =>
-            prevProducts.map((p) =>
-                p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-            )
-        );
-
-        setFilteredProducts((prevFiltered) =>
-            prevFiltered.map((p) =>
-                p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-            )
-        );
     };
 
     const handleIncreaseQuantity = (productId: number) => {
@@ -72,81 +70,37 @@ const PosScreen: React.FC = () => {
                 item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
             )
         );
-
-        setProducts((prevProducts) =>
-            prevProducts.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock - 1 } : p
-            )
-        );
-
-        setFilteredProducts((prevFiltered) =>
-            prevFiltered.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock - 1 } : p
-            )
-        );
     };
 
     const handleDecreaseQuantity = (productId: number) => {
         setCart((prevCart) =>
             prevCart
                 .map((item) =>
-                    item.id === productId ? { ...item, quantity: item.quantity - 1 } : item
+                    item.id === productId && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item
                 )
                 .filter((item) => item.quantity > 0)
-        );
-
-        setProducts((prevProducts) =>
-            prevProducts.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock + 1 } : p
-            )
-        );
-
-        setFilteredProducts((prevFiltered) =>
-            prevFiltered.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock + 1 } : p
-            )
         );
     };
 
     const handleRemoveFromCart = (productId: number) => {
-        const removedItem = cart.find((item) => item.id === productId);
-
-        if (!removedItem) return;
-
         setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
-
-        setProducts((prevProducts) =>
-            prevProducts.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock + removedItem.quantity } : p
-            )
-        );
-
-        setFilteredProducts((prevFiltered) =>
-            prevFiltered.map((p) =>
-                p.id === productId ? { ...p, stock: p.stock + removedItem.quantity } : p
-            )
-        );
     };
-
-    type NavigationProps = StackNavigationProp<RootStackParamList, 'POS'>;
-
-    const navigation = useNavigation<NavigationProps>();
 
     const handlePayment = async () => {
         if (cart.length === 0) {
             Alert.alert('Carrito vacío', 'No hay productos en el carrito.');
             return;
         }
-    
+
         for (const item of cart) {
             const updatedProduct = {
                 ...item,
-                stock: item.stock - item.quantity, // Reducir el stock
+                stock: item.stock - item.quantity,
             };
-    
-            await updateProduct(updatedProduct); // 🔹 Llamada para actualizar la BD
+
+            await updateProduct(updatedProduct);
         }
-    
+
         Alert.alert(
             'Venta completada',
             '¿Deseas realizar otra venta?',
@@ -163,28 +117,37 @@ const PosScreen: React.FC = () => {
             ],
             { cancelable: false }
         );
-    };    
+    };
 
     const totalParcial = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
+    console.log("User en POS Screen:", user);
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Punto de Venta</Text>
+            <Appbar.Header>
+                <Appbar.BackAction onPress={() => navigation.goBack()} />
+                <Appbar.Content 
+                title="Punto de Venta" 
+                titleStyle={stylesBadge.appbarTitle}
+                />
+                {user && <UserBadgeMenu userId={user.id} />}
+            </Appbar.Header>
+
+            <Text style={styles.title}>Agrega al carrito</Text>
             <SearchBar onSearch={handleSearch} />
 
-            {/* 🛍️ Contenedor de productos con desplazamiento y distribución correcta */}
             <FlatList
                 data={filteredProducts}
                 keyExtractor={(item) => item.id.toString()}
-                numColumns={2} // Mantiene dos columnas
+                numColumns={2}
                 showsVerticalScrollIndicator={false}
-                columnWrapperStyle={styles.productRow} // Mantiene alineación simétrica
+                columnWrapperStyle={styles.productRow}
                 renderItem={({ item }) => (
                     <ProductGrid products={[item]} onSelectProduct={handleAddToCart} />
                 )}
             />
 
-            {/* 🛒 Carrito fijo */}
             <View style={styles.cartContainer}>
                 <Text style={styles.cartTitle}>Carrito</Text>
                 <FlatList
@@ -196,12 +159,15 @@ const PosScreen: React.FC = () => {
                                 {item.name} ({item.quantity}) - ${item.price.toFixed(2)}
                             </Text>
                             <View style={styles.cartActions}>
+                                {/* Botón para disminuir cantidad */}
                                 <TouchableOpacity onPress={() => handleDecreaseQuantity(item.id)}>
                                     <Icon name="remove-circle-outline" size={24} color="#FF3B30" />
                                 </TouchableOpacity>
+                                {/* Botón para aumentar cantidad */}
                                 <TouchableOpacity onPress={() => handleIncreaseQuantity(item.id)}>
                                     <Icon name="add-circle-outline" size={24} color="#007AFF" />
                                 </TouchableOpacity>
+                                {/* Botón para eliminar del carrito */}
                                 <TouchableOpacity onPress={() => handleRemoveFromCart(item.id)}>
                                     <Icon name="trash-outline" size={24} color="#FF3B30" />
                                 </TouchableOpacity>

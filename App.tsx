@@ -2,16 +2,19 @@ import React from 'react';
 import { SafeAreaView } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { setupDatabase } from './src/database/database';
-import { setupDatabaseUsers } from './src/database/databaseUsers'; // ✅ Importar la inicialización de usuarios
+import { setupDatabaseUsers } from './src/database/databaseUsers';
+import { Provider as PaperProvider } from 'react-native-paper';  // ✅ Importar Provider de react-native-paper
 
-setupDatabaseUsers(); // ✅ Ahora inicializa la base de datos de usuarios
-setupDatabase(); // Inicializa la base de datos de productos
+setupDatabaseUsers();
+setupDatabase();
 
 const App: React.FC = () => {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <AppNavigator />
-    </SafeAreaView>
+    <PaperProvider> {/* 🔹 Envolver la aplicación con Provider */}
+      <SafeAreaView style={{ flex: 1 }}>
+        <AppNavigator />
+      </SafeAreaView>
+    </PaperProvider>
   );
 };
 

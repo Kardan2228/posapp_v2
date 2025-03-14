@@ -1,12 +1,14 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
-import { setupDatabase } from './src/database/database';
+import { setupDatabase } from './src/database/databaseInventory';
 import { setupDatabaseUsers } from './src/database/databaseUsers';
+import { setupDatabaseSales } from './src/database/databaseSales';
 import { Provider as PaperProvider } from 'react-native-paper';  // ✅ Importar Provider de react-native-paper
 
 setupDatabaseUsers();
 setupDatabase();
+setupDatabaseSales();
 
 const App: React.FC = () => {
   return (

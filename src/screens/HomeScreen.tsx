@@ -46,19 +46,17 @@ const HomeScreen: React.FC<{ route: HomeScreenRouteProp }> = ({ route }) => {
         <View style={styles.grid}>
           {menuItems.map((item) => (
             <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              onPress={() => {
-                if (item.screen === 'UserManagement' && user?.role !== 'admin') {
-                  Alert.alert('Acceso denegado', 'No tienes permisos para acceder a esta sección.');
-                } else {
-                  navigation.navigate(
-                    item.screen as keyof RootStackParamList,
-                    item.screen === 'UserManagement' ? ({ user } as any) : undefined
-                  );
-                }
-              }}
-            >
+            key={item.id}
+            style={styles.card}
+            onPress={() => {
+              if (item.screen === 'UserManagement' && user?.role !== 'admin') {
+                Alert.alert('Acceso denegado', 'No tienes permisos para acceder a esta sección.');
+              } else {
+                const params = item.screen !== 'Login' ? { user } : undefined;
+                navigation.navigate(item.screen as keyof RootStackParamList, params as never);
+              }
+            }}
+          >           
               <Icon name={item.icon} size={40} color="#007AFF" />
               <Text style={styles.cardText}>{item.name}</Text>
             </TouchableOpacity>

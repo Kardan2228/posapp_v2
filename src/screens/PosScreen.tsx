@@ -4,7 +4,8 @@ import SearchBar from '../components/pos/SearchBar';
 import { styles } from '../styles/posScreen.styles';
 import { stylesBadge } from '../styles/userBadgeMenu.styles';
 import ProductGrid from '../components/pos/ProductGrid';
-import { getProducts, updateProduct } from '../database/database';
+import { getProducts, updateProduct } from '../database/databaseInventory';
+import { insertSale } from '../database/databaseSales';
 import { Product } from '../types/product';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -21,14 +22,12 @@ type PosScreenNavigationProp = StackNavigationProp<RootStackParamList, 'POS'>;
 type PosScreenRouteProp = RouteProp<RootStackParamList, 'POS'>;
 
 const PosScreen: React.FC<{ route: PosScreenRouteProp }> = ({ route }) => {
-    console.log('User en POS Screen antes de destructuring:', route.params?.user);
     const navigation = useNavigation<PosScreenNavigationProp>();
     const { user } = route.params || {}; // ✅ Ahora `user` está bien definido
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<CartItem[]>([]);
-    const [manualEntry, setManualEntry] = useState('');
-    
+
     useEffect(() => {
         fetchProducts();
     }, []);
@@ -92,30 +91,50 @@ const PosScreen: React.FC<{ route: PosScreenRouteProp }> = ({ route }) => {
             return;
         }
 
-        for (const item of cart) {
-            const updatedProduct = {
-                ...item,
-                stock: item.stock - item.quantity,
-            };
-
-            await updateProduct(updatedProduct);
+        if (!user || !user.id) {
+            Alert.alert('Error', 'No se ha identificado un usuario para esta venta.');
+            return;
         }
 
         Alert.alert(
-            'Venta completada',
-            '¿Deseas realizar otra venta?',
+            'Confirmar Venta',
+            `El total de la venta es $${cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}\n¿Deseas continuar?`,
             [
                 {
-                    text: 'Menú Principal',
-                    onPress: () => navigation.navigate('Home'),
-                },
-                {
-                    text: 'Nueva Venta',
-                    onPress: () => setCart([]),
+                    text: 'Cancelar',
                     style: 'cancel',
                 },
-            ],
-            { cancelable: false }
+                {
+                    text: 'Confirmar',
+                    onPress: async () => {
+                        let allSuccessful = true;
+
+                        for (const item of cart) {
+                            const saleSuccess = await insertSale(item.id, item.quantity, item.price * item.quantity, user.id);
+                            const stockUpdateSuccess = await updateProduct({ ...item, stock: item.stock - item.quantity });
+
+                            if (!saleSuccess || !stockUpdateSuccess) {
+                                allSuccessful = false;
+                                break;
+                            }
+                        }
+
+                        if (allSuccessful) {
+                            Alert.alert(
+                                'Venta Exitosa',
+                                'Los productos se han registrado correctamente en el sistema.',
+                                [
+                                    { text: 'Menú Principal', onPress: () => navigation.navigate('Home') },
+                                    { text: 'Nueva Venta', onPress: () => setCart([]), style: 'cancel' },
+                                ],
+                                { cancelable: false }
+                            );
+                        } else {
+                            Alert.alert('Error', 'Hubo un problema al registrar la venta. Intenta nuevamente.');
+                        }
+                    },
+                },
+            ]
         );
     };
 
@@ -127,9 +146,9 @@ const PosScreen: React.FC<{ route: PosScreenRouteProp }> = ({ route }) => {
         <View style={styles.container}>
             <Appbar.Header>
                 <Appbar.BackAction onPress={() => navigation.goBack()} />
-                <Appbar.Content 
-                title="Punto de Venta" 
-                titleStyle={stylesBadge.appbarTitle}
+                <Appbar.Content
+                    title="Punto de Venta"
+                    titleStyle={stylesBadge.appbarTitle}
                 />
                 {user && <UserBadgeMenu userId={user.id} />}
             </Appbar.Header>

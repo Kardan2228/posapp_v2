@@ -9,6 +9,7 @@ import { getAllSales, getSalesByUser, getTopSellingProducts, getLowSellingProduc
 import { styles } from '../styles/SalesReportScreen.styles';
 import FilterMenu from '../components/reports/FilterMenu';
 import DateRangePicker from '../components/reports/DateRangePicker';
+import ReportActions from '../components/reports/ReportActions';
 
 type SalesReportScreenNavigationProp = StackNavigationProp<RootStackParamList, 'SalesReport'>;
 type SalesReportScreenRouteProp = RouteProp<RootStackParamList, 'SalesReport'>;
@@ -124,6 +125,8 @@ const SalesReportScreen: React.FC<{ route: SalesReportScreenRouteProp }> = ({ ro
                     />
                 </DataTable>
             </ScrollView>
+            {/* 📌 Botones de Exportar y Generar Gráficos */}
+            <ReportActions sales={sales} />
         </View>
     );
 };

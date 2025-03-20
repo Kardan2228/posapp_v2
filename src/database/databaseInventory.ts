@@ -5,7 +5,7 @@ import { Product } from '../types/product';
 const db = SQLite.openDatabaseSync('posapp.db');
 
 // 📌 Crear la tabla products
-export const setupDatabase = async () => {
+export const setupDatabaseInventory = async () => {
   try {
     console.log('📌 Inicializando base de datos de productos...');
 

@@ -36,7 +36,7 @@ const ReportsScreen: React.FC<{ route: ReportsScreenRouteProp }> = ({ route }) =
                 <Appbar.Content title="Reportes" titleStyle={stylesBadge.appbarTitle} />
                 {user && <UserBadgeMenu userId={user.id} />}
             </Appbar.Header>
-    
+
             {/* 📌 Lista de reportes disponibles */}
             {userReports.length === 0 ? (
                 <Text style={styles.noReportsText}>No tienes reportes disponibles</Text>
@@ -45,7 +45,12 @@ const ReportsScreen: React.FC<{ route: ReportsScreenRouteProp }> = ({ route }) =
                     data={userReports}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => navigation.navigate(item.id as keyof RootStackParamList)}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                const params = item.id !== 'Login' ? { user } : undefined;
+                                navigation.navigate(item.id as keyof RootStackParamList, params as never);
+                            }}
+                        >
                             <Card style={styles.card}>
                                 <Card.Content>
                                     <Icon name={item.icon} size={30} style={styles.icon} />
@@ -57,8 +62,8 @@ const ReportsScreen: React.FC<{ route: ReportsScreenRouteProp }> = ({ route }) =
                     )}
                 />
             )}
-        </View> 
-    );    
+        </View>
+    );
 };
 
 export default ReportsScreen;

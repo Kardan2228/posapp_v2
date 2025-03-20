@@ -5,7 +5,7 @@ import { BackHandler } from 'react-native';
 import { getUserById } from '../database/databaseUsers';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { styles } from '../styles/userBadgeMenu.styles';
+import { stylesBadge } from '../styles/userBadgeMenu.styles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -18,11 +18,11 @@ const UserBadgeMenu = ({ userId }: { userId: number }) => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                console.log(`🔹 Buscando usuario con ID: ${userId}`);
+                //console.log(`🔹 Buscando usuario con ID: ${userId}`);
                 const user = (await getUserById(userId)) as { name: string; profile_image: string | null } | null;
 
                 if (user) {
-                    console.log("✅ Usuario obtenido:", user);
+                    //console.log("✅ Usuario obtenido:", user);
                     setCurrentUser(user);
                 } else {
                     console.log("⚠️ Usuario no encontrado, asignando valores por defecto.");
@@ -50,7 +50,7 @@ const UserBadgeMenu = ({ userId }: { userId: number }) => {
         BackHandler.exitApp();
     };
 
-    console.log("📌 Renderizando avatar con usuario:", currentUser);
+    //console.log("📌 Renderizando avatar con usuario:", currentUser);
 
     return (
         <Menu
@@ -60,7 +60,7 @@ const UserBadgeMenu = ({ userId }: { userId: number }) => {
                 <Avatar.Image
                     size={40}
                     source={currentUser?.profile_image ? { uri: currentUser.profile_image } : require('../../assets/default_avatar.png')}
-                    style={styles?.avatarContainer ?? {}}
+                    style={stylesBadge?.avatarContainer ?? {}}
                     onTouchEnd={openMenu}
                 />
             }

@@ -60,3 +60,164 @@ export const insertSale = async (product_id: number, quantity: number, totalPric
         return false;
     }
 };
+/*
+const verifyTables = async () => {
+    try {
+        const tables = await db.getAllAsync("SELECT name FROM sqlite_master WHERE type='table';");
+        console.log('📌 Tablas actuales en la BD:', tables);
+    } catch (error) {
+        console.error("❌ Error al obtener las tablas:", error);
+    }
+};
+
+// 📌 Ejecutar la verificación
+verifyTables();
+*/
+
+// 📌 Obtener todas las ventas con filtros opcionales
+export const getAllSales = async (startDate: string | null = null, endDate: string | null = null) => {
+    let query = `
+        SELECT sales.id, products.name AS product_name, sales.quantity,
+               sales.saleDate, sales.totalPrice, sales.user_id, users.name AS user_name
+        FROM sales
+        JOIN users ON sales.user_id = users.id
+        JOIN products ON sales.product_id = products.id
+        WHERE 1=1`;
+
+    const params: any[] = [];
+
+    if (startDate) {
+        query += " AND sales.saleDate >= ?";
+        params.push(startDate);
+    }
+    if (endDate) {
+        query += " AND sales.saleDate <= ?";
+        params.push(endDate);
+    }
+
+    query += " ORDER BY sales.saleDate DESC";
+
+    return await db.getAllAsync(query, params);
+};
+
+// 📌 Obtener ventas por usuario con filtros opcionales
+export const getSalesByUser = async (user_id: number, filters: { product_id?: number; startDate?: string; endDate?: string } = {}) => {
+    try {
+        console.log(`📌 Ejecutando consulta de ventas para el usuario ${user_id} con filtros...`, filters);
+        const { product_id = null, startDate = null, endDate = null } = filters;
+        console.log(`📌 Filtros recibidos - product_id: ${product_id}, startDate: ${startDate}, endDate: ${endDate}`);
+        
+        let query = `
+            SELECT sales.id, sales.product_id, products.name AS product_name, sales.quantity, 
+                   sales.saleDate, sales.totalPrice, sales.user_id, users.name AS user_name
+            FROM sales
+            JOIN users ON sales.user_id = users.id
+            JOIN products ON sales.product_id = products.id
+            WHERE sales.user_id = ?`;
+        
+        const params: any[] = [user_id];
+        
+        if (product_id !== null) {
+            query += ` AND sales.product_id = ?`;
+            params.push(product_id);
+        }
+        if (startDate !== null) {
+            query += ` AND sales.saleDate >= ?`;
+            params.push(startDate);
+        }
+        if (endDate !== null) {
+            query += ` AND sales.saleDate <= ?`;
+            params.push(endDate);
+        }
+        query += ` ORDER BY sales.saleDate DESC;`;
+        
+        console.log(`📌 Consulta SQL generada: ${query}`);
+        
+        const result = await db.getAllAsync(query, params);
+        console.log('✅ Ventas obtenidas para el usuario con filtros:', result);
+        return result;
+    } catch (error) {
+        console.error('❌ Error al obtener ventas del usuario con filtros:', error);
+        return [];
+    }
+};
+
+// 📌 Obtener los productos más vendidos
+export const getTopSellingProducts = async () => {
+    try {
+        console.log("📊 Ejecutando consulta de productos más vendidos...");
+        const result = await db.getAllAsync(`
+            SELECT p.id, p.name AS product_name, SUM(s.quantity) AS total_quantity
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            GROUP BY p.id
+            ORDER BY total_quantity DESC
+            LIMIT 10;
+        `);
+        console.log("✅ Productos más vendidos obtenidos:", result);
+        return result;
+    } catch (error) {
+        console.error('❌ Error al obtener los productos más vendidos:', error);
+        return [];
+    }
+};
+
+// 📌 Obtener los productos menos vendidos
+export const getLowSellingProducts = async () => {
+    try {
+        console.log("📊 Ejecutando consulta de productos menos vendidos...");
+        const result = await db.getAllAsync(`
+            SELECT p.id, p.name AS product_name, 
+                   SUM(s.quantity) AS total_quantity,
+                   SUM(s.totalPrice) AS total_price
+            FROM sales s
+            JOIN products p ON s.product_id = p.id
+            GROUP BY p.id
+            ORDER BY total_quantity ASC
+            LIMIT 10;
+        `);
+        console.log("✅ Productos menos vendidos obtenidos:", result);
+        return result;
+    } catch (error) {
+        console.error('❌ Error al obtener los productos menos vendidos:', error);
+        return [];
+    }
+};
+
+// 📌 Obtener ventas filtradas por usuario y/o fechas
+export const getSalesByFilters = async (filters: { user_id?: number | null, startDate?: string | null, endDate?: string | null }) => {
+    try {
+        let query = `
+            SELECT sales.id, sales.product_id, products.name AS product_name, sales.quantity,
+                   sales.saleDate, sales.totalPrice, sales.user_id, users.name AS user_name
+            FROM sales
+            JOIN users ON sales.user_id = users.id
+            JOIN products ON sales.product_id = products.id
+            WHERE 1=1
+        `;
+        const params: any[] = [];
+
+        if (filters.user_id) {
+            query += " AND sales.user_id = ?";
+            params.push(filters.user_id);
+        }
+        if (filters.startDate && filters.endDate) {
+            query += " AND sales.saleDate BETWEEN ? AND ?";
+            params.push(filters.startDate, filters.endDate);
+        } else if (filters.startDate) {
+            query += " AND sales.saleDate >= ?";
+            params.push(filters.startDate);
+        } else if (filters.endDate) {
+            query += " AND sales.saleDate <= ?";
+            params.push(filters.endDate);
+        }
+
+        query += " ORDER BY sales.saleDate DESC;";
+
+        const result = await db.getAllAsync(query, params);
+        return result;
+    } catch (error) {
+        console.error('❌ Error al obtener ventas con filtros:', error);
+        return [];
+    }
+};

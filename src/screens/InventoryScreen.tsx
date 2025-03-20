@@ -5,7 +5,7 @@ import ProductForm from '../components/inventory/ProductForm';
 import { Product } from '../types/product';
 import { styles } from '../styles/inventory.styles';
 import { stylesBadge } from '../styles/userBadgeMenu.styles';
-import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabase } from '../database/databaseInventory';
+import { getProducts, insertProduct, updateProduct, deleteProduct, setupDatabaseInventory } from '../database/databaseInventory';
 import Icon from 'react-native-vector-icons/Ionicons'; // 📌 Íconos
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -24,7 +24,7 @@ const InventoryScreen: React.FC<{ route: InventoryScreenRouteProp }> = ({ route 
     const [modalVisible, setModalVisible] = useState(false);
 
     useEffect(() => {
-        setupDatabase();
+        setupDatabaseInventory();
         fetchProducts();
     }, []); // ✅ Solo se ejecuta una vez al montar el componente
 

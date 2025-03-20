@@ -7,6 +7,7 @@ import PosScreen from '../screens/PosScreen';
 import LoginScreen from '../screens/LoginScreen';
 import UserManagementScreen from '../screens/UserManagementScreen';
 import ReportsScreen from '../screens/ReportsScreen';
+import SalesReportScreen from '../screens/SalesReportScreen'
 
 // 🛠️ Definir tipos para cada pantalla
 export type RootStackParamList = {
@@ -16,6 +17,7 @@ export type RootStackParamList = {
   Login: undefined;
   UserManagement: { user: { id: number; name: string; role: string } } | undefined;
   Reports: { user: { id: number; name: string; role: string } } | undefined;
+  SalesReport: { user: { id: number; name: string; role: string } } | undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -30,6 +32,7 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen name="POS" component={PosScreen} options={{ headerShown: false }} />
         <Stack.Screen name="UserManagement" component={UserManagementScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Reports" component={ReportsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SalesReport" component={SalesReportScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
